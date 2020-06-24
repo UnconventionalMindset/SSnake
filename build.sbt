@@ -1,3 +1,5 @@
+organization := "io.github.jacopogobbi"
+
 name := "SSnake"
 
 version := "0.1"
@@ -18,5 +20,6 @@ libraryDependencies ++=
   javaFXModules.map(m => "org.openjfx" % s"javafx-$m" % "14.0.1" classifier osName) ++
     Seq(
       // Add dependency on ScalaFX library
-      "org.scalafx" %% "scalafx" % "14-R19"
+      "org.scalafx" %% "scalafx" % "14-R19",
+      "com.beachape" %% "enumeratum" % "1.6.1"
     )
