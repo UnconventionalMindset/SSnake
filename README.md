@@ -3,6 +3,7 @@
 Snake game built with ScalaFx using the JavaFx tutorial: https://www.youtube.com/watch?v=VmChebZcb2U&t=425s
 
 ## Screenshot
+![SSnake](/../screenshots/SSnake.png?raw=true "SSnake")
 
 ## Requirements
 1. JDK 14
