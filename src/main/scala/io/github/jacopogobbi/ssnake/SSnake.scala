@@ -6,8 +6,9 @@ import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.Scene
 import scalafx.scene.canvas.{Canvas, GraphicsContext}
+import scalafx.scene.control.{Menu, MenuBar}
 import scalafx.scene.input.{KeyCode, KeyEvent}
-import scalafx.scene.layout.VBox
+import scalafx.scene.layout.{BorderPane, HBox, VBox}
 import scalafx.scene.paint.Color
 import scalafx.scene.paint.Color._
 import scalafx.scene.text.Font
@@ -21,7 +22,7 @@ object SSnake extends JFXApp {
   var foodColor = 0
   val w = 20
   val h = 20
-  val cornerSize = 50
+  val cornerSize = 40
 
   var speed: Int = initialSpeed
   var foodX = 0
@@ -36,7 +37,7 @@ object SSnake extends JFXApp {
 
     snake.foreach { c =>
       if (c.x == foodX && c.y == foodY) {
-        return newFood()
+        newFood()
       }
     }
     foodColor = rand.nextInt(5)
@@ -51,7 +52,7 @@ object SSnake extends JFXApp {
 
       return
     }
-    for (i <- snake.size-1 to 1 by -1) {
+    (snake.size-1 to 1 by -1).foreach { i =>
       val previousLocation = snake(i - 1)
       snake(i) = snake(i).copy(previousLocation.x, previousLocation.y)
     }
@@ -87,17 +88,14 @@ object SSnake extends JFXApp {
     gc.font = Font("", 30)
     gc.fillText("Score: " + (speed - initialSpeed), 10, 30)
 
-    var cc = Color.White
-
-    foodColor match {
-      case 0 => cc = Color.Purple
-      case 1 => cc = Color.LightBlue
-      case 2 => cc = Color.Yellow
-      case 3 => cc = Color.Pink
-      case 4 => cc = Color.Orange
+    gc.fill = foodColor match {
+      case 0 => Color.Purple
+      case 1 => Color.LightBlue
+      case 2 => Color.Yellow
+      case 3 => Color.Pink
+      case 4 => Color.Orange
     }
 
-    gc.fill = cc
     gc.fillOval(foodX * cornerSize, foodY * cornerSize, cornerSize, cornerSize)
 
     snake.foreach { c =>
@@ -113,21 +111,33 @@ object SSnake extends JFXApp {
   var gc: GraphicsContext = _
 
   stage = new PrimaryStage {
-    title = "SSnake"
+    title = "Scala Snake"
     width = w * cornerSize
     height = h * cornerSize
-    scene = new Scene(w * cornerSize, h * cornerSize) {
-      fill = Black
-      onKeyPressed = (ev: KeyEvent) => {
-        if (ev.code == KeyCode.W || ev.code == KeyCode.Up) direction = Direction.Up
-        if (ev.code == KeyCode.A || ev.code == KeyCode.Left) direction = Direction.Left
-        if (ev.code == KeyCode.S || ev.code == KeyCode.Down) direction = Direction.Down
-        if (ev.code == KeyCode.D || ev.code == KeyCode.Right) direction = Direction.Right
+    scene = new Scene {
+      val rootPane = new BorderPane
+      rootPane.top = new MenuBar {
+        menus = List(new Menu("File"))
       }
-      content = new VBox {
-        children = new Canvas(w * cornerSize, h * cornerSize) {
-//          stylesheets = Seq(getClass.getResource("application.css").toExternalForm)
+      rootPane.center = new HBox(1) {
+        children = new Canvas {
+          width <== rootPane.width
+          height <== rootPane.height
           gc = this.graphicsContext2D
+        }
+      }
+      root = rootPane
+//      fill = Black
+      onKeyPressed = (ev: KeyEvent) => {
+        ev.code match {
+          case KeyCode.A | KeyCode.Left =>
+            direction = Direction.Left
+          case KeyCode.D | KeyCode.Right =>
+            direction = Direction.Right
+          case KeyCode.S | KeyCode.Down =>
+            direction = Direction.Down
+          case KeyCode.W | KeyCode.Up =>
+            direction = Direction.Up
         }
       }
     }
