@@ -1,3 +1,5 @@
 package io.github.jacopogobbi.ssnake
 
-case class Corner(var x: Int, var y: Int)
+import scalafx.beans.property.IntegerProperty
+
+case class Corner(x: IntegerProperty, var y: IntegerProperty)

@@ -4,13 +4,13 @@ import scalafx.Includes._
 import scalafx.animation.AnimationTimer
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
+import scalafx.beans.property.{BooleanProperty, IntegerProperty, ObjectProperty}
 import scalafx.scene.Scene
 import scalafx.scene.canvas.{Canvas, GraphicsContext}
-import scalafx.scene.control.{Menu, MenuBar}
+import scalafx.scene.control.{Menu, MenuBar, MenuItem}
 import scalafx.scene.input.{KeyCode, KeyEvent}
-import scalafx.scene.layout.{BorderPane, HBox, VBox}
+import scalafx.scene.layout.{BorderPane, HBox}
 import scalafx.scene.paint.Color
-import scalafx.scene.paint.Color._
 import scalafx.scene.text.Font
 
 import scala.collection.mutable
@@ -19,95 +19,97 @@ import scala.util.Random
 object SSnake extends JFXApp {
   val rand = new Random()
   val initialSpeed = 3
-  var foodColor = 0
+  val foodColor: IntegerProperty = IntegerProperty(0)
   val w = 20
   val h = 20
   val cornerSize = 40
 
-  var speed: Int = initialSpeed
+  val speed: IntegerProperty = IntegerProperty(initialSpeed)
   var foodX = 0
   var foodY = 0
-  var direction: Direction = Direction.Left
-  var gameOver = false
+  val direction: ObjectProperty[Direction] = ObjectProperty[Direction](Direction.Left)
+  var gameOver: BooleanProperty = BooleanProperty(false)
   var snake: mutable.Seq[Corner] = mutable.Seq()
 
   def newFood(): Unit = {
     foodX = rand.nextInt(w)
     foodY = rand.nextInt(h)
 
-    snake.foreach { c =>
-      if (c.x == foodX && c.y == foodY) {
+    snake.foreach { segment =>
+      if (segment.x.value == foodX && segment.y.value == foodY) {
         newFood()
       }
     }
-    foodColor = rand.nextInt(5)
-    speed += 1
+    foodColor.value = rand.nextInt(5)
+    speed.value += 1
   }
 
   def tick(gc: GraphicsContext): Unit = {
-    if (gameOver) {
+    if (gameOver.value) {
       gc.fill = Color.Red
       gc.font = Font("", 50)
       gc.fillText("Game Over", 100, 250)
-
-      return
-    }
-    (snake.size-1 to 1 by -1).foreach { i =>
-      val previousLocation = snake(i - 1)
-      snake(i) = snake(i).copy(previousLocation.x, previousLocation.y)
-    }
-    direction match {
-      case Direction.Up =>
-        snake.head.y = snake.head.y - 1
-        if (snake.head.y < 0) gameOver = true
-      case Direction.Down =>
-        snake.head.y = snake.head.y + 1
-        if (snake.head.y > h) gameOver = true
-      case Direction.Left =>
-        snake.head.x = snake.head.x - 1
-        if (snake.head.x < 0) gameOver = true
-      case Direction.Right =>
-        snake.head.x = snake.head.x + 1
-        if (snake.head.y > w) gameOver = true
-    }
-
-    if (foodX == snake.head.x && foodY == snake.head.y) {
-      snake = snake :+ Corner(-1, 1)
-      newFood()
-    }
-    (1 until snake.size).foreach { i =>
-      if (snake.head.x == snake(i).x && snake.head.y == snake(i).y) {
-        gameOver = true
+    } else {
+      (snake.size-1 to 1 by -1).foreach { i =>
+        snake(i).x.value = snake(i - 1).x.value
+        snake(i).y.value = snake(i - 1).y.value
       }
-    }
+      direction.value match {
+        case Direction.Up =>
+          snake.head.y.value -= 1
+          if (snake.head.y.value < 0)
+            gameOver.value = true
+        case Direction.Down =>
+          snake.head.y.value += 1
+          if (snake.head.y.value > h)
+            gameOver.value = true
+        case Direction.Left =>
+          snake.head.x.value -= 1
+          if (snake.head.x.value < 0)
+            gameOver.value = true
+        case Direction.Right =>
+          snake.head.x.value += 1
+          if (snake.head.y.value > w)
+            gameOver.value = true
+      }
 
-    gc.fill = Color.Black
-    gc.fillRect(0, 0, w * cornerSize, h * cornerSize)
+      if (foodX == snake.head.x.value && foodY == snake.head.y.value) {
+        snake = snake :+ Corner(IntegerProperty(-1), IntegerProperty(1))
+        newFood()
+      }
+      (1 until snake.size).foreach { i =>
+        if (snake.head.x.value == snake(i).x.value && snake.head.y.value == snake(i).y.value) {
+          gameOver.value = true
+        }
+      }
 
-    gc.fill = Color.White
-    gc.font = Font("", 30)
-    gc.fillText("Score: " + (speed - initialSpeed), 10, 30)
+      gc.fill = Color.Black
+      gc.fillRect(0, 0, w * cornerSize, h * cornerSize)
 
-    gc.fill = foodColor match {
-      case 0 => Color.Purple
-      case 1 => Color.LightBlue
-      case 2 => Color.Yellow
-      case 3 => Color.Pink
-      case 4 => Color.Orange
-    }
+      gc.fill = Color.White
+      gc.font = Font("", 30)
+      gc.fillText("Score: " + (speed.value - initialSpeed), 10, 30)
 
-    gc.fillOval(foodX * cornerSize, foodY * cornerSize, cornerSize, cornerSize)
+      gc.fill = foodColor.value match {
+        case 0 => Color.Purple
+        case 1 => Color.LightBlue
+        case 2 => Color.Yellow
+        case 3 => Color.Pink
+        case 4 => Color.Orange
+      }
 
-    snake.foreach { c =>
-      gc.fill = Color.LightGreen
-      gc.fillRect(c.x * cornerSize, c.y * cornerSize, cornerSize - 1, cornerSize - 1)
-      gc.fill = Color.Green
-      gc.fillRect(c.x * cornerSize, c.y * cornerSize, cornerSize - 1, cornerSize - 1)
+      gc.fillOval(foodX * cornerSize, foodY * cornerSize, cornerSize, cornerSize)
+
+      snake.foreach { segment =>
+        gc.fill = Color.LightGreen
+        gc.fillRect(segment.x.value * cornerSize, segment.y.value * cornerSize, cornerSize - 1, cornerSize - 1)
+        gc.fill = Color.Green
+        gc.fillRect(segment.x.value * cornerSize, segment.y.value * cornerSize, cornerSize - 1, cornerSize - 1)
+      }
     }
   }
 
   newFood()
-
   var gc: GraphicsContext = _
 
   stage = new PrimaryStage {
@@ -117,7 +119,24 @@ object SSnake extends JFXApp {
     scene = new Scene {
       val rootPane = new BorderPane
       rootPane.top = new MenuBar {
-        menus = List(new Menu("File"))
+        menus = List {
+          new Menu("File") {
+            items = List {
+              new MenuItem("New Game") {
+                onAction = { _ =>
+                  gameOver.value = false
+                  newFood()
+                  timer.start()
+                  snake = mutable.ArrayDeque[Corner](
+                    Corner(IntegerProperty(w / 2), IntegerProperty(h / 2)),
+                    Corner(IntegerProperty(w / 2), IntegerProperty(h / 2)),
+                    Corner(IntegerProperty(w / 2), IntegerProperty(h / 2)),
+                  )
+                }
+              }
+            }
+          }
+        }
       }
       rootPane.center = new HBox(1) {
         children = new Canvas {
@@ -127,35 +146,27 @@ object SSnake extends JFXApp {
         }
       }
       root = rootPane
-//      fill = Black
       onKeyPressed = (ev: KeyEvent) => {
         ev.code match {
-          case KeyCode.A | KeyCode.Left =>
-            direction = Direction.Left
-          case KeyCode.D | KeyCode.Right =>
-            direction = Direction.Right
-          case KeyCode.S | KeyCode.Down =>
-            direction = Direction.Down
-          case KeyCode.W | KeyCode.Up =>
-            direction = Direction.Up
+          case KeyCode.A | KeyCode.Left if direction.value != Direction.Right =>
+            direction.value = Direction.Left
+          case KeyCode.D | KeyCode.Right if direction.value != Direction.Left =>
+            direction.value = Direction.Right
+          case KeyCode.S | KeyCode.Down if direction.value != Direction.Up =>
+            direction.value = Direction.Down
+          case KeyCode.W | KeyCode.Up if direction.value != Direction.Down =>
+            direction.value = Direction.Up
+          case _ =>
         }
       }
     }
   }
+  val oneSec = 1_000_000_000L
   var lastTick = 0L
   val timer: AnimationTimer = AnimationTimer(now => {
-    if (lastTick == 0L) {
-      lastTick = now
-      tick(gc)
-    } else if (now - lastTick > 1_000_000_000L / speed) {
+    if (lastTick == 0L || (now - lastTick > oneSec / speed.value)) {
       lastTick = now
       tick(gc)
     }
   })
-  timer.start
-  snake = mutable.Seq(
-    Corner(w / 2, h / 2),
-    Corner(w / 2, h / 2),
-    Corner(w / 2, h / 2)
-  )
 }
