@@ -21,7 +21,7 @@ object SSnake extends JFXApp {
   var foodColor = 0
   val w = 20
   val h = 20
-  val cornerSize = 100
+  val cornerSize = 50
 
   var speed: Int = initialSpeed
   var foodX = 0
@@ -122,7 +122,7 @@ object SSnake extends JFXApp {
         if (ev.code == KeyCode.W || ev.code == KeyCode.Up) direction = Direction.Up
         if (ev.code == KeyCode.A || ev.code == KeyCode.Left) direction = Direction.Left
         if (ev.code == KeyCode.S || ev.code == KeyCode.Down) direction = Direction.Down
-        if (ev.code == KeyCode.D || ev.code == KeyCode.Left) direction = Direction.Right
+        if (ev.code == KeyCode.D || ev.code == KeyCode.Right) direction = Direction.Right
       }
       content = new VBox {
         children = new Canvas(w * cornerSize, h * cornerSize) {
