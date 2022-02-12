@@ -22,3 +22,9 @@ logs/
 tmp/
 dist/
 .cache/
+
+# SBT
+.bsp/
+
+# SBT-Coursier issue?
+null/
